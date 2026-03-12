@@ -3,6 +3,14 @@
 version = 4
 
 [[package]]
+name = "AniHover"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "log",
+]
+
+[[package]]
 name = "ab_glyph"
 version = "0.2.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2450,14 +2458,6 @@ dependencies = [
  "futures-task",
  "pin-project-lite",
  "slab",
-]
-
-[[package]]
-name = "game02"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "log",
 ]
 
 [[package]]

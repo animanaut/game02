@@ -179,7 +179,7 @@ fn main_menu_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             children![
                 // Display the game name
                 (
-                    Text::new("Anihover (Working Title)"),
+                    Text::new("AniHover"),
                     TextFont {
                         font_size: 67.0,
                         ..default()

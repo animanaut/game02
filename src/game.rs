@@ -5,11 +5,19 @@ use bevy::{
 
 use super::{DisplayQuality, GameState, TEXT_COLOR, Volume};
 
-// This plugin will contain the game. In this case, it's just be a screen that will
-// display the current settings for 5 seconds before returning to the menu
-pub fn game_plugin(app: &mut App) {
-    app.add_systems(OnEnter(GameState::Game), game_setup)
-        .add_systems(Update, game.run_if(in_state(GameState::Game)));
+// Plugin
+pub struct GamePlugin;
+
+impl Plugin for GamePlugin {
+    fn build(&self, app: &mut App) {
+        // This plugin will contain the game. In this case, it's just be a screen that will
+        // display the current settings for 5 seconds before returning to the menu
+        app.add_systems(OnEnter(GameState::Game), game_setup)
+            .add_systems(
+                Update,
+                (game, handle_player).run_if(in_state(GameState::Game)),
+            );
+    }
 }
 
 // Tag component used to tag entities added on the game screen
@@ -18,6 +26,11 @@ struct OnGameScreen;
 
 #[derive(Resource, Deref, DerefMut)]
 struct GameTimer(Timer);
+
+// TODO: maybe extract into its own file
+// marker entity for any player entity
+#[derive(Component)]
+struct Player;
 
 fn game_setup(mut commands: Commands, display_quality: Res<DisplayQuality>, volume: Res<Volume>) {
     commands.spawn((
@@ -103,5 +116,11 @@ fn game(
 ) {
     if timer.tick(time.delta()).is_finished() {
         game_state.set(GameState::Menu);
+    }
+}
+
+fn handle_player(player_query: Query<&Player>) {
+    for _player in player_query.iter() {
+        // TODO
     }
 }

@@ -2,13 +2,17 @@
 //! change some settings or quit. There is no actual game, it will just display the current
 //! settings for 5 seconds before going back to the menu.
 
-use game::game_plugin;
-use menu::menu_plugin;
-use splash::splash_plugin;
+use app_states::AppStatesPlugin;
+use game::GamePlugin;
+use game_camera::GameCameraPlugin;
+use menu::MenuPlugin;
+use splash::SplashPlugin;
 
 use bevy::prelude::*;
 
+mod app_states;
 mod game;
+mod game_camera;
 mod menu;
 mod splash;
 
@@ -45,7 +49,13 @@ fn main() {
         .init_state::<GameState>()
         .add_systems(Startup, setup)
         // Adds the plugins for each state
-        .add_plugins((splash_plugin, menu_plugin, game_plugin))
+        .add_plugins((
+            AppStatesPlugin,
+            SplashPlugin,
+            MenuPlugin,
+            GamePlugin,
+            GameCameraPlugin,
+        ))
         .run();
 }
 

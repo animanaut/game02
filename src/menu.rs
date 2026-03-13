@@ -7,41 +7,46 @@ use bevy::{
 
 use super::{DisplayQuality, GameState, TEXT_COLOR, Volume};
 
-// This plugin manages the menu, with 5 different screens:
-// - a main menu with "New Game", "Settings", "Quit"
-// - a settings menu with two submenus and a back button
-// - two settings screen with a setting that can be set and a back button
-pub fn menu_plugin(app: &mut App) {
-    app
-        // At start, the menu is not enabled. This will be changed in `menu_setup` when
-        // entering the `GameState::Menu` state.
-        // Current screen in the menu is handled by an independent state from `GameState`
-        .init_state::<MenuState>()
-        .add_systems(OnEnter(GameState::Menu), menu_setup)
-        // Systems to handle the main menu screen
-        .add_systems(OnEnter(MenuState::Main), main_menu_setup)
-        // Systems to handle the settings menu screen
-        .add_systems(OnEnter(MenuState::Settings), settings_menu_setup)
-        // Systems to handle the display settings screen
-        .add_systems(
-            OnEnter(MenuState::SettingsDisplay),
-            display_settings_menu_setup,
-        )
-        .add_systems(
-            Update,
-            (setting_button::<DisplayQuality>.run_if(in_state(MenuState::SettingsDisplay)),),
-        )
-        // Systems to handle the sound settings screen
-        .add_systems(OnEnter(MenuState::SettingsSound), sound_settings_menu_setup)
-        .add_systems(
-            Update,
-            setting_button::<Volume>.run_if(in_state(MenuState::SettingsSound)),
-        )
-        // Common systems to all screens that handles buttons behavior
-        .add_systems(
-            Update,
-            (menu_action, button_system).run_if(in_state(GameState::Menu)),
-        );
+// Plugin
+pub struct MenuPlugin;
+
+impl Plugin for MenuPlugin {
+    fn build(&self, app: &mut App) {
+        // This plugin manages the menu, with 5 different screens:
+        // - a main menu with "New Game", "Settings", "Quit"
+        // - a settings menu with two submenus and a back button
+        // - two settings screen with a setting that can be set and a back button
+        app
+            // At start, the menu is not enabled. This will be changed in `menu_setup` when
+            // entering the `GameState::Menu` state.
+            // Current screen in the menu is handled by an independent state from `GameState`
+            .init_state::<MenuState>()
+            .add_systems(OnEnter(GameState::Menu), menu_setup)
+            // Systems to handle the main menu screen
+            .add_systems(OnEnter(MenuState::Main), main_menu_setup)
+            // Systems to handle the settings menu screen
+            .add_systems(OnEnter(MenuState::Settings), settings_menu_setup)
+            // Systems to handle the display settings screen
+            .add_systems(
+                OnEnter(MenuState::SettingsDisplay),
+                display_settings_menu_setup,
+            )
+            .add_systems(
+                Update,
+                (setting_button::<DisplayQuality>.run_if(in_state(MenuState::SettingsDisplay)),),
+            )
+            // Systems to handle the sound settings screen
+            .add_systems(OnEnter(MenuState::SettingsSound), sound_settings_menu_setup)
+            .add_systems(
+                Update,
+                setting_button::<Volume>.run_if(in_state(MenuState::SettingsSound)),
+            )
+            // Common systems to all screens that handles buttons behavior
+            .add_systems(
+                Update,
+                (menu_action, button_system).run_if(in_state(GameState::Menu)),
+            );
+    }
 }
 
 // State used for the current menu screen
@@ -93,6 +98,7 @@ enum MenuButtonAction {
 }
 
 // This system handles changing all buttons color based on mouse interaction
+#[allow(clippy::type_complexity)]
 fn button_system(
     mut interaction_query: Query<
         (&Interaction, &mut BackgroundColor, Option<&SelectedOption>),
@@ -111,6 +117,7 @@ fn button_system(
 
 // This system updates the settings when a new value for a setting is selected, and marks
 // the button as the one currently selected
+#[allow(clippy::type_complexity)]
 fn setting_button<T: Resource + Component + PartialEq + Copy>(
     interaction_query: Query<(&Interaction, &T, Entity), (Changed<Interaction>, With<Button>)>,
     selected_query: Single<(Entity, &mut BackgroundColor), With<SelectedOption>>,
@@ -460,6 +467,7 @@ fn sound_settings_menu_setup(mut commands: Commands, volume: Res<Volume>) {
     ));
 }
 
+#[allow(clippy::type_complexity)]
 fn menu_action(
     interaction_query: Query<
         (&Interaction, &MenuButtonAction),

@@ -2,13 +2,18 @@ use bevy::prelude::*;
 
 use super::GameState;
 
-pub fn splash_plugin(app: &mut App) {
-    // As this plugin is managing the splash screen, it will focus on the state `GameState::Splash`
-    app
-        // When entering the state, spawn everything needed for this screen
-        .add_systems(OnEnter(GameState::Splash), splash_setup)
-        // While in this state, run the `countdown` system
-        .add_systems(Update, countdown.run_if(in_state(GameState::Splash)));
+// Plugin
+pub struct SplashPlugin;
+
+impl Plugin for SplashPlugin {
+    fn build(&self, app: &mut App) {
+        // As this plugin is managing the splash screen, it will focus on the state `GameState::Splash`
+        app
+            // When entering the state, spawn everything needed for this screen
+            .add_systems(OnEnter(GameState::Splash), splash_setup)
+            // While in this state, run the `countdown` system
+            .add_systems(Update, countdown.run_if(in_state(GameState::Splash)));
+    }
 }
 
 // Tag component used to tag entities added on the splash screen

@@ -5,6 +5,7 @@
 use app_states::AppStatesPlugin;
 use game::GamePlugin;
 use game_camera::GameCameraPlugin;
+use hover_controller::HoverControllerPlugin;
 use menu::MenuPlugin;
 use splash::SplashPlugin;
 
@@ -13,6 +14,7 @@ use bevy::prelude::*;
 mod app_states;
 mod game;
 mod game_camera;
+mod hover_controller;
 mod menu;
 mod splash;
 
@@ -54,7 +56,8 @@ fn main() {
             SplashPlugin,
             MenuPlugin,
             GamePlugin,
-            GameCameraPlugin,
+            //GameCameraPlugin,
+            HoverControllerPlugin,
         ))
         .run();
 }

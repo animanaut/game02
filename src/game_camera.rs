@@ -22,9 +22,9 @@ fn game_camera_setup(mut commands: Commands) {
     debug!("starting {}", NAME);
     commands
         .spawn(GameCamera)
-        .insert(DespawnOnExit(Game))
         .insert(Name::new("GameCamera"))
-        .insert(Camera3d::default());
+        //.insert(Camera3d::default())
+        .insert(DespawnOnExit(Game));
 }
 
 fn update_camera(camera_query: Query<&GameCamera>) {

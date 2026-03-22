@@ -4,7 +4,7 @@ use super::GameState::Game;
 
 // Constants
 const NAME: &str = "sprite";
-const SPRITE_FILE: &str = "TODO";
+const HOVER_SPRITE: &str = "sprites/craft-dev.png";
 
 // Plugin
 pub struct SpritePlugin;
@@ -28,7 +28,7 @@ struct SpriteBundle {
 
 fn sprite_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     debug!("setup {}", NAME);
-    commands.spawn(Sprite::from_image(asset_server.load(SPRITE_FILE)));
+    commands.spawn(Sprite::from_image(asset_server.load(HOVER_SPRITE)));
 }
 
 fn sprite_update() {

@@ -5,6 +5,7 @@ use super::GameState::Game;
 // Constants
 const NAME: &str = "sprite";
 const HOVER_SPRITE: &str = "sprites/craft-dev.png";
+pub const SPRITE_SCALE: f32 = 6.0;
 
 // Plugin
 pub struct SpritePlugin;
@@ -28,7 +29,14 @@ struct SpriteBundle {
 
 fn sprite_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     debug!("setup {}", NAME);
-    commands.spawn(Sprite::from_image(asset_server.load(HOVER_SPRITE)));
+    let handle = asset_server.load(HOVER_SPRITE);
+    let sprite = Sprite::from_image(handle);
+    // TODO: how to default_nearest to avoid blurry sprites
+    commands.spawn((
+        sprite,
+        Transform::from_scale(Vec3::splat(SPRITE_SCALE)).with_translation(vec3(400., 400., 0.)),
+        DespawnOnExit(Game),
+    ));
 }
 
 fn sprite_update() {

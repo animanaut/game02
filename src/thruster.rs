@@ -17,7 +17,12 @@ impl Plugin for ThrusterPlugin {
             // Systems
             .add_systems(
                 Update,
-                (up_thruster_added, right_thruster_added).run_if(in_state(Game)),
+                (
+                    up_thruster_added,
+                    right_thruster_added,
+                    update_right_thruster,
+                )
+                    .run_if(in_state(Game)),
             );
     }
 }
@@ -36,7 +41,7 @@ pub struct ThrustRight;
 
 #[derive(Component)]
 pub struct Thruster {
-    direction: Vec3,
+    pub direction: Vec3,
 }
 
 #[derive(Bundle)]
@@ -66,5 +71,13 @@ fn right_thruster_added(mut commands: Commands, added: Query<Entity, Added<Right
                 direction: Vec3::new(1.0, 0.0, 0.0),
             },
         });
+    }
+}
+
+fn update_right_thruster(
+    mut right_thrusters: Query<(Entity, &mut Transform), With<RightThruster>>,
+) {
+    for (_thruster, mut transform) in right_thrusters.iter_mut() {
+        transform.translation.x += 1.0;
     }
 }

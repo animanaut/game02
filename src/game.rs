@@ -3,6 +3,8 @@ use bevy::{
     prelude::*,
 };
 
+use crate::thruster::{RightThruster, UpThruster};
+
 use super::{DisplayQuality, GameState, TEXT_COLOR, Volume};
 
 // Plugin
@@ -30,9 +32,14 @@ struct GameTimer(Timer);
 // TODO: maybe extract into its own file
 // marker entity for any player entity
 #[derive(Component)]
-struct Player;
+pub struct Player;
 
 fn game_setup(mut commands: Commands, display_quality: Res<DisplayQuality>, volume: Res<Volume>) {
+    commands
+        .spawn(Player)
+        .insert(UpThruster)
+        .insert(RightThruster);
+
     commands.spawn((
         DespawnOnExit(GameState::Game),
         Node {

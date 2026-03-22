@@ -4,10 +4,12 @@
 
 use app_states::AppStatesPlugin;
 use game::GamePlugin;
-use game_camera::GameCameraPlugin;
+//use game_camera::GameCameraPlugin;
 use hover_controller::HoverControllerPlugin;
 use menu::MenuPlugin;
 use splash::SplashPlugin;
+use sprite::SpritePlugin;
+use thruster::ThrusterPlugin;
 
 use bevy::prelude::*;
 
@@ -17,6 +19,8 @@ mod game_camera;
 mod hover_controller;
 mod menu;
 mod splash;
+mod sprite;
+mod thruster;
 
 const TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
 
@@ -58,6 +62,8 @@ fn main() {
             GamePlugin,
             //GameCameraPlugin,
             HoverControllerPlugin,
+            ThrusterPlugin,
+            SpritePlugin,
         ))
         .run();
 }

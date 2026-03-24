@@ -38,7 +38,7 @@ fn player_added(
         commands.entity(add).insert((
             sprite,
             Transform::from_scale(Vec3::splat(SPRITE_SCALE))
-                .with_translation(vec3(-400., 400., 0.)),
+                .with_translation(vec3(-400., 100., 0.)),
             DespawnOnExit(Game),
         ));
         debug!("added player sprite {}", NAME);

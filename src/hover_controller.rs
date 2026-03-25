@@ -38,31 +38,22 @@ fn setup_controller(mut commands: Commands) {
 }
 
 fn update_controller_events(
-    mut keyboard_inputs: MessageReader<KeyboardInput>,
-    controller_query: Query<(Entity, &HoverController)>,
+    keyboard_inputs: Res<ButtonInput<KeyCode>>,
     mut thrust_up_events: MessageWriter<ThrustUp>,
     mut thrust_right_events: MessageWriter<ThrustRight>,
 ) {
     debug!("updating {}", NAME);
-    for keyboard_input in keyboard_inputs.read() {
-        debug!("{:?}", keyboard_input);
-        for controller in controller_query.iter() {
-            debug!("controller {:?}", controller.0);
 
-            // TODO: how to make this configurable for the end user
+    if keyboard_inputs.pressed(KeyCode::KeyW) {
+        thrust_up_events.write(ThrustUp);
+        debug!("player pressed up");
+    }
 
-            if keyboard_input.key_code.eq(&KeyCode::KeyW) {
-                thrust_up_events.write(ThrustUp);
-                debug!("player pressed up");
-            }
-
-            if keyboard_input.key_code.eq(&KeyCode::KeyD) {
-                thrust_right_events.write(ThrustRight);
-                debug!("player pressed right");
-            }
-        }
+    if keyboard_inputs.pressed(KeyCode::KeyD) {
+        thrust_right_events.write(ThrustRight);
+        debug!("player pressed right");
     }
 
     // hardcoded constant right thrust for the moment
-    //thrust_right_events.write(ThrustRight);
+    thrust_right_events.write(ThrustRight);
 }

@@ -42,6 +42,12 @@ pub struct UpThruster;
 #[derive(Component)]
 pub struct RightThruster;
 
+#[derive(Component)]
+pub struct UpThrusterFlame;
+
+#[derive(Component)]
+pub struct RightThrusterFlame;
+
 // Thruster Components
 #[derive(Component)]
 pub enum ThrustDirection {
@@ -55,9 +61,10 @@ pub enum ThrusterType {
     CONTROLLED,
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct Thruster {
     pub direction: Vec3,
+    pub force: f32,
 }
 
 #[derive(Bundle)]
@@ -89,6 +96,7 @@ fn up_thruster_added(
             name: Name::new("UpThruster"),
             thruster: Thruster {
                 direction: Vec3::new(0.0, 1.0, 0.0),
+                force: 1.0,
             },
             offset: Transform::default(),
             direction: ThrustDirection::UP,
@@ -102,6 +110,7 @@ fn up_thruster_added(
             name: Name::new("ConstantUpThruster"),
             thruster: Thruster {
                 direction: Vec3::new(0.0, 1.0, 0.0),
+                force: 1.0,
             },
             offset: Transform::default(),
             direction: ThrustDirection::UP,
@@ -121,6 +130,7 @@ fn right_thruster_added(
             name: Name::new("RightThruster"),
             thruster: Thruster {
                 direction: Vec3::new(1.0, 0.0, 0.0),
+                force: 1.0,
             },
             offset: Transform::default(),
             direction: ThrustDirection::RIGHT,
@@ -134,6 +144,7 @@ fn right_thruster_added(
             name: Name::new("ConstantRightThruster"),
             thruster: Thruster {
                 direction: Vec3::new(1.0, 0.0, 0.0),
+                force: 1.0,
             },
             offset: Transform::default(),
             direction: ThrustDirection::RIGHT,

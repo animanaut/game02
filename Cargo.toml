@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 bevy = { version = "0.18.0" }
+bevy-inspector-egui = { version = "0.36" }
 # not yet available
 #bevy = { version = "0.18.0", features = ["dynamic_linking"] }
 

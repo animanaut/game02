@@ -13,6 +13,7 @@ use sprite::SpritePlugin;
 use thruster::ThrusterPlugin;
 
 use bevy::prelude::*;
+use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 
 use crate::app_states::GameState;
 
@@ -49,6 +50,8 @@ fn main() {
         // Declare the game state, whose starting value is determined by the `Default` trait
         .add_systems(Startup, setup)
         // Adds the plugins for each state
+        .add_plugins(EguiPlugin::default())
+        .add_plugins(WorldInspectorPlugin::new())
         .add_plugins((
             AppStatesPlugin,
             SplashPlugin,

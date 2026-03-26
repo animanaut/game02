@@ -1,13 +1,19 @@
 use bevy::prelude::*;
 
-use crate::game::Player;
+use crate::{
+    game::Player,
+    thruster::{RightThruster, ThrustDirection, Thruster},
+};
 
 use super::GameState::Game;
 
 // Constants
 const NAME: &str = "sprite";
 const HOVER_SPRITE: &str = "sprites/craft-dev.png";
+const RIGHT_FLAME_SPRITE: &str = "sprites/right-flame.png";
+const UP_FLAME_SPRITE: &str = "sprites/up-flame.png";
 pub const SPRITE_SCALE: f32 = 6.0;
+pub const SPRITE_SIZE: f32 = 32.0;
 
 // Plugin
 pub struct SpritePlugin;
@@ -18,7 +24,10 @@ impl Plugin for SpritePlugin {
             // Messages
             // Systems
             .add_systems(OnEnter(Game), sprite_setup)
-            .add_systems(Update, (player_added, sprite_update).run_if(in_state(Game)));
+            .add_systems(
+                Update,
+                (player_added, thruster_added, sprite_update).run_if(in_state(Game)),
+            );
     }
 }
 
@@ -42,6 +51,61 @@ fn player_added(
             DespawnOnExit(Game),
         ));
         debug!("added player sprite {}", NAME);
+    }
+}
+
+fn thruster_added(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    added: Query<(Entity, &Transform, &ThrustDirection), Added<Thruster>>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+) {
+    for (add, _transform, direction) in added.iter() {
+        let mut offset = Vec3::default();
+        match direction {
+            ThrustDirection::UP => {
+                offset.y = -SPRITE_SIZE;
+                let handle = asset_server.load(UP_FLAME_SPRITE);
+                let layout = TextureAtlasLayout::from_grid(UVec2::splat(32), 2, 1, None, None);
+                let texture_atlas_layout = texture_atlas_layouts.add(layout);
+
+                let sprite = Sprite {
+                    image: handle.clone(),
+                    texture_atlas: Some(TextureAtlas {
+                        layout: texture_atlas_layout.clone(),
+                        index: 0,
+                    }),
+                    ..default()
+                };
+
+                commands.entity(add).insert((
+                    sprite,
+                    Transform::from_translation(offset),
+                    DespawnOnExit(Game),
+                ));
+            }
+            ThrustDirection::RIGHT => {
+                offset.x = -SPRITE_SIZE;
+                let handle = asset_server.load(RIGHT_FLAME_SPRITE);
+                let layout = TextureAtlasLayout::from_grid(UVec2::splat(32), 2, 1, None, None);
+                let texture_atlas_layout = texture_atlas_layouts.add(layout);
+
+                let sprite = Sprite {
+                    image: handle.clone(),
+                    texture_atlas: Some(TextureAtlas {
+                        layout: texture_atlas_layout.clone(),
+                        index: 0,
+                    }),
+                    ..default()
+                };
+                commands.entity(add).insert((
+                    sprite,
+                    Transform::from_translation(offset),
+                    DespawnOnExit(Game),
+                ));
+            }
+        }
+        debug!("added flame sprite {}", NAME);
     }
 }
 

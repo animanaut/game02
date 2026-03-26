@@ -1,6 +1,6 @@
 use bevy::{input::keyboard::KeyboardInput, prelude::*};
 
-use crate::thruster::{RightThruster, UpThruster};
+use crate::thruster::{ConstantRightThruster, RightThruster, UpThruster};
 
 use super::GameState;
 
@@ -28,7 +28,7 @@ fn game_setup(mut commands: Commands) {
     commands
         .spawn(Player)
         .insert(UpThruster)
-        .insert(RightThruster);
+        .insert(ConstantRightThruster);
 }
 
 fn handle_player(player_query: Query<&Player>) {

@@ -1,4 +1,4 @@
-use bevy::{input::keyboard::KeyboardInput, prelude::*};
+use bevy::prelude::*;
 
 use crate::thruster::{RightThruster, ThrustRight, ThrustUp, UpThruster};
 
@@ -50,7 +50,8 @@ fn update_controller_events(
     }
 
     if keyboard_inputs.pressed(KeyCode::KeyD) {
-        thrust_right_events.write(ThrustRight);
+        // for now only constant right thrust
+        //    thrust_right_events.write(ThrustRight);
         debug!("player pressed right");
     }
 

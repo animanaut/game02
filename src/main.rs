@@ -14,6 +14,8 @@ use thruster::ThrusterPlugin;
 
 use bevy::prelude::*;
 
+use crate::app_states::GameState;
+
 mod app_states;
 mod game;
 mod game_camera;
@@ -25,15 +27,6 @@ mod sprite;
 mod thruster;
 
 const TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
-
-// Enum that will be used as a global state for the game
-#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
-enum GameState {
-    #[default]
-    Splash,
-    Menu,
-    Game,
-}
 
 // One of the two settings that can be set through the menu. It will be a resource in the app
 #[derive(Resource, Debug, Component, PartialEq, Eq, Clone, Copy)]
@@ -54,7 +47,6 @@ fn main() {
         .insert_resource(DisplayQuality::Medium)
         .insert_resource(Volume(7))
         // Declare the game state, whose starting value is determined by the `Default` trait
-        .init_state::<GameState>()
         .add_systems(Startup, setup)
         // Adds the plugins for each state
         .add_plugins((

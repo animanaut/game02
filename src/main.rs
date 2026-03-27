@@ -4,7 +4,6 @@
 
 use app_states::AppStatesPlugin;
 use game::GamePlugin;
-//use game_camera::GameCameraPlugin;
 use gravity::GravityPlugin;
 use hover_controller::HoverControllerPlugin;
 use menu::MenuPlugin;
@@ -19,7 +18,6 @@ use crate::app_states::GameState;
 
 mod app_states;
 mod game;
-mod game_camera;
 mod gravity;
 mod hover_controller;
 mod menu;
@@ -57,7 +55,6 @@ fn main() {
             SplashPlugin,
             MenuPlugin,
             GamePlugin,
-            //GameCameraPlugin,
             HoverControllerPlugin,
             ThrusterPlugin,
             SpritePlugin,

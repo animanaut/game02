@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     game::Player,
-    thruster::{RightThruster, ThrustDirection, Thruster},
+    thruster::{RightThrusterFlame, ThrustDirection, Thruster, UpThrusterFlame},
 };
 
 use super::GameState::Game;
@@ -79,6 +79,8 @@ fn thruster_added(
                 };
 
                 commands.entity(add).insert((
+                    UpThrusterFlame,
+                    Visibility::Hidden,
                     sprite,
                     Transform::from_translation(offset),
                     DespawnOnExit(Game),
@@ -99,6 +101,8 @@ fn thruster_added(
                     ..default()
                 };
                 commands.entity(add).insert((
+                    RightThrusterFlame,
+                    Visibility::Hidden,
                     sprite,
                     Transform::from_translation(offset),
                     DespawnOnExit(Game),

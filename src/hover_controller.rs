@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::thruster::{RightThruster, ThrustRight, ThrustUp, UpThruster};
+use crate::thruster::{ThrustRight, ThrustRightOff, ThrustUp, ThrustUpOff};
 
 use super::GameState::Game;
 
@@ -19,23 +19,23 @@ impl Plugin for HoverControllerPlugin {
     }
 }
 
-#[derive(Component)]
-struct HoverController;
-
-#[derive(Component)]
-struct Hover;
-
 // Systems
 
 fn update_controller_events(
     keyboard_inputs: Res<ButtonInput<KeyCode>>,
     mut thrust_up_events: MessageWriter<ThrustUp>,
+    mut thrust_up_off_events: MessageWriter<ThrustUpOff>,
     mut thrust_right_events: MessageWriter<ThrustRight>,
 ) {
     debug!("updating {}", NAME);
 
     if keyboard_inputs.pressed(KeyCode::KeyW) {
         thrust_up_events.write(ThrustUp);
+        debug!("player pressed up");
+    }
+
+    if keyboard_inputs.just_released(KeyCode::KeyW) {
+        thrust_up_off_events.write(ThrustUpOff);
         debug!("player pressed up");
     }
 

@@ -1,6 +1,6 @@
 use bevy::{input::keyboard::KeyboardInput, prelude::*};
 
-use crate::thruster::{ConstantRightThruster, RightThruster, UpThruster};
+use crate::thruster::{ConstantRightThruster, UpThruster};
 
 use super::GameState;
 

@@ -14,6 +14,8 @@ impl Plugin for ThrusterPlugin {
             // Messages
             .add_message::<ThrustUp>()
             .add_message::<ThrustRight>()
+            .add_message::<ThrustUpOff>()
+            .add_message::<ThrustRightOff>()
             // Systems
             .add_systems(
                 Update,
@@ -22,6 +24,7 @@ impl Plugin for ThrusterPlugin {
                     right_thruster_added,
                     update_controlled_thrusters,
                     update_constant_thrusters,
+                    thruster_state_change,
                 )
                     .run_if(in_state(Game)),
             );
@@ -61,6 +64,13 @@ pub enum ThrusterType {
     CONTROLLED,
 }
 
+#[derive(Component)]
+pub enum ThrusterState {
+    OFF,
+    ON,
+    FIRING,
+}
+
 #[derive(Component, Default)]
 pub struct Thruster {
     pub direction: Vec3,
@@ -74,6 +84,7 @@ struct ThrusterBundle {
     offset: Transform,
     direction: ThrustDirection,
     thruster_type: ThrusterType,
+    thruster_state: ThrusterState,
 }
 
 // Messages
@@ -83,6 +94,12 @@ pub struct ThrustUp;
 
 #[derive(Message)]
 pub struct ThrustRight;
+
+#[derive(Message)]
+pub struct ThrustUpOff;
+
+#[derive(Message)]
+pub struct ThrustRightOff;
 
 // Systems
 
@@ -101,6 +118,7 @@ fn up_thruster_added(
             offset: Transform::default(),
             direction: ThrustDirection::UP,
             thruster_type: ThrusterType::CONTROLLED,
+            thruster_state: ThrusterState::ON,
         });
         debug!("up thruster added {}", NAME);
     }
@@ -115,6 +133,7 @@ fn up_thruster_added(
             offset: Transform::default(),
             direction: ThrustDirection::UP,
             thruster_type: ThrusterType::CONSTANT,
+            thruster_state: ThrusterState::ON,
         });
         debug!("constant up thruster added {}", NAME);
     }
@@ -135,6 +154,7 @@ fn right_thruster_added(
             offset: Transform::default(),
             direction: ThrustDirection::RIGHT,
             thruster_type: ThrusterType::CONTROLLED,
+            thruster_state: ThrusterState::ON,
         });
         debug!("right thruster added {}", NAME);
     }
@@ -149,6 +169,7 @@ fn right_thruster_added(
             offset: Transform::default(),
             direction: ThrustDirection::RIGHT,
             thruster_type: ThrusterType::CONSTANT,
+            thruster_state: ThrusterState::ON,
         });
         debug!("constant right thruster added {}", NAME);
     }
@@ -156,20 +177,43 @@ fn right_thruster_added(
 
 fn update_controlled_thrusters(
     mut up_thruster_reader: MessageReader<ThrustUp>,
+    mut up_thruster_off_reader: MessageReader<ThrustUpOff>,
     mut right_thruster_reader: MessageReader<ThrustRight>,
     mut parent_transform: Query<
         (&Children, &mut Transform),
         Or<(With<RightThruster>, With<UpThruster>)>,
     >,
-    thrusters: Query<(&Thruster, &ThrustDirection, &ThrusterType)>,
+    mut thrusters: Query<(
+        &Thruster,
+        &ThrustDirection,
+        &ThrusterType,
+        &mut ThrusterState,
+    )>,
 ) {
+    for _ in up_thruster_off_reader.read() {
+        for (children, _) in parent_transform.iter_mut() {
+            for child in children {
+                if let Ok((_, ThrustDirection::UP, ThrusterType::CONTROLLED, mut thruster_state)) =
+                    thrusters.get_mut(*child)
+                {
+                    *thruster_state = ThrusterState::ON;
+                }
+            }
+        }
+    }
+
     for _ in up_thruster_reader.read() {
         for (children, mut transform) in parent_transform.iter_mut() {
             for child in children {
-                if let Ok((thruster, ThrustDirection::UP, ThrusterType::CONTROLLED)) =
-                    thrusters.get(*child)
+                if let Ok((
+                    thruster,
+                    ThrustDirection::UP,
+                    ThrusterType::CONTROLLED,
+                    mut thruster_state,
+                )) = thrusters.get_mut(*child)
                 {
                     transform.translation += thruster.direction;
+                    *thruster_state = ThrusterState::FIRING;
                 }
             }
         }
@@ -178,7 +222,7 @@ fn update_controlled_thrusters(
     for _ in right_thruster_reader.read() {
         for (children, mut transform) in parent_transform.iter_mut() {
             for child in children {
-                if let Ok((thruster, ThrustDirection::RIGHT, ThrusterType::CONTROLLED)) =
+                if let Ok((thruster, ThrustDirection::RIGHT, ThrusterType::CONTROLLED, _)) =
                     thrusters.get(*child)
                 {
                     transform.translation += thruster.direction;
@@ -201,5 +245,20 @@ fn update_constant_thrusters(
                 transform.translation += thruster.direction;
             }
         }
+    }
+}
+
+fn thruster_state_change(
+    mut thrusters: Query<
+        (&ThrusterState, &mut Visibility),
+        (With<Thruster>, Changed<ThrusterState>),
+    >,
+) {
+    for (state, mut visibility) in thrusters.iter_mut() {
+        *visibility = match state {
+            ThrusterState::OFF => Visibility::Hidden,
+            ThrusterState::ON => Visibility::Hidden,
+            ThrusterState::FIRING => Visibility::Visible,
+        };
     }
 }

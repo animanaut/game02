@@ -27,6 +27,7 @@ pub struct Player;
 fn game_setup(mut commands: Commands) {
     commands
         .spawn(Player)
+        .insert(Name::new("Player"))
         .insert(UpThruster)
         .insert(ConstantRightThruster);
 }

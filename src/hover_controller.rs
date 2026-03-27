@@ -15,7 +15,6 @@ impl Plugin for HoverControllerPlugin {
         app
             // Messages
             // Systems
-            .add_systems(OnEnter(Game), setup_controller)
             .add_systems(Update, (update_controller_events,).run_if(in_state(Game)));
     }
 }
@@ -27,15 +26,6 @@ struct HoverController;
 struct Hover;
 
 // Systems
-fn setup_controller(mut commands: Commands) {
-    debug!("starting {}", NAME);
-    commands
-        .spawn(Hover)
-        .insert(HoverController)
-        .insert(UpThruster)
-        .insert(RightThruster)
-        .insert(DespawnOnExit(Game));
-}
 
 fn update_controller_events(
     keyboard_inputs: Res<ButtonInput<KeyCode>>,

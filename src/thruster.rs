@@ -66,6 +66,7 @@ pub enum ThrusterType {
 
 #[derive(Component)]
 pub enum ThrusterState {
+    #[allow(dead_code)]
     OFF,
     ON,
     FIRING,
@@ -74,6 +75,8 @@ pub enum ThrusterState {
 #[derive(Component, Default)]
 pub struct Thruster {
     pub direction: Vec3,
+    // TODO: todo
+    #[allow(dead_code)]
     pub force: f32,
 }
 

@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 
 use crate::{
@@ -24,10 +26,38 @@ impl Plugin for SpritePlugin {
             // Messages
             // Systems
             .add_systems(OnEnter(Game), sprite_setup)
+            .add_systems(Update, execute_animations)
             .add_systems(
                 Update,
                 (player_added, thruster_added, sprite_update).run_if(in_state(Game)),
             );
+    }
+}
+
+// Components
+#[derive(Component)]
+struct SpriteAnimationConfig {
+    first_sprite_index: usize,
+    last_sprite_index: usize,
+    //fps: u8,
+    frame_timer: Timer,
+}
+
+impl SpriteAnimationConfig {
+    fn new(first: usize, last: usize, fps: u8) -> Self {
+        Self {
+            first_sprite_index: first,
+            last_sprite_index: last,
+            //fps,
+            frame_timer: Self::timer_from_fps(fps),
+        }
+    }
+
+    fn timer_from_fps(fps: u8) -> Timer {
+        Timer::new(
+            Duration::from_secs_f32(1.0 / (fps as f32)),
+            TimerMode::Repeating,
+        )
     }
 }
 
@@ -62,6 +92,7 @@ fn thruster_added(
 ) {
     for (add, _transform, direction) in added.iter() {
         let mut offset = Vec3::default();
+        let animation_config = SpriteAnimationConfig::new(0, 1, 12);
         match direction {
             ThrustDirection::UP => {
                 offset.y = -SPRITE_SIZE;
@@ -82,6 +113,7 @@ fn thruster_added(
                     UpThrusterFlame,
                     Visibility::Hidden,
                     sprite,
+                    animation_config,
                     Transform::from_translation(offset),
                     DespawnOnExit(Game),
                 ));
@@ -104,6 +136,7 @@ fn thruster_added(
                     RightThrusterFlame,
                     Visibility::Hidden,
                     sprite,
+                    animation_config,
                     Transform::from_translation(offset),
                     DespawnOnExit(Game),
                 ));
@@ -115,4 +148,23 @@ fn thruster_added(
 
 fn sprite_update() {
     debug!("update {}", NAME);
+}
+
+fn execute_animations(
+    time: Res<Time>,
+    mut query: Query<(&mut SpriteAnimationConfig, &mut Sprite)>,
+) {
+    for (mut config, mut sprite) in &mut query {
+        config.frame_timer.tick(time.delta());
+
+        if config.frame_timer.just_finished()
+            && let Some(atlas) = &mut sprite.texture_atlas
+        {
+            if atlas.index == config.last_sprite_index {
+                atlas.index = config.first_sprite_index;
+            } else {
+                atlas.index += 1;
+            }
+        }
+    }
 }

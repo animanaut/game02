@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::thruster::{ThrustRight, ThrustRightOff, ThrustUp, ThrustUpOff};
+use crate::thruster::{ThrustRight, ThrustUp, ThrustUpOff};
 
 use super::GameState::Game;
 

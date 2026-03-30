@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::gravity::Velocity;
+
 use super::GameState::Game;
 
 // Constants
@@ -14,8 +16,8 @@ impl Plugin for ThrusterPlugin {
             // Messages
             .add_message::<ThrustUp>()
             .add_message::<ThrustRight>()
-            .add_message::<ThrustUpOff>()
-            .add_message::<ThrustRightOff>()
+            .add_message::<ThrustUpStandby>()
+            .add_message::<ThrustRightStandby>()
             // Systems
             .add_systems(
                 Update,
@@ -25,6 +27,7 @@ impl Plugin for ThrusterPlugin {
                     update_controlled_thrusters,
                     update_constant_thrusters,
                     thruster_state_change,
+                    controlled_thrusters_standby,
                 )
                     .run_if(in_state(Game)),
             );
@@ -77,7 +80,8 @@ pub struct Thruster {
     pub direction: Vec3,
     // TODO: todo
     #[allow(dead_code)]
-    pub force: f32,
+    /// force vector in newton
+    pub force: Vec3,
 }
 
 #[derive(Bundle)]
@@ -99,10 +103,10 @@ pub struct ThrustUp;
 pub struct ThrustRight;
 
 #[derive(Message)]
-pub struct ThrustUpOff;
+pub struct ThrustUpStandby;
 
 #[derive(Message)]
-pub struct ThrustRightOff;
+pub struct ThrustRightStandby;
 
 // Systems
 
@@ -116,7 +120,7 @@ fn up_thruster_added(
             name: Name::new("UpThruster"),
             thruster: Thruster {
                 direction: Vec3::new(0.0, 1.0, 0.0),
-                force: 1.0,
+                force: Vec3::new(0., 10.0, 0.),
             },
             offset: Transform::default(),
             direction: ThrustDirection::UP,
@@ -131,7 +135,7 @@ fn up_thruster_added(
             name: Name::new("ConstantUpThruster"),
             thruster: Thruster {
                 direction: Vec3::new(0.0, 1.0, 0.0),
-                force: 1.0,
+                force: Vec3::new(0., 10.0, 0.),
             },
             offset: Transform::default(),
             direction: ThrustDirection::UP,
@@ -152,7 +156,7 @@ fn right_thruster_added(
             name: Name::new("RightThruster"),
             thruster: Thruster {
                 direction: Vec3::new(1.0, 0.0, 0.0),
-                force: 1.0,
+                force: Vec3::new(10.0, 0., 0.),
             },
             offset: Transform::default(),
             direction: ThrustDirection::RIGHT,
@@ -167,7 +171,7 @@ fn right_thruster_added(
             name: Name::new("ConstantRightThruster"),
             thruster: Thruster {
                 direction: Vec3::new(1.0, 0.0, 0.0),
-                force: 1.0,
+                force: Vec3::new(1.0, 0., 0.),
             },
             offset: Transform::default(),
             direction: ThrustDirection::RIGHT,
@@ -178,11 +182,9 @@ fn right_thruster_added(
     }
 }
 
-fn update_controlled_thrusters(
-    mut up_thruster_reader: MessageReader<ThrustUp>,
-    mut up_thruster_off_reader: MessageReader<ThrustUpOff>,
-    mut right_thruster_reader: MessageReader<ThrustRight>,
-    mut right_thruster_off_reader: MessageReader<ThrustRightOff>,
+fn controlled_thrusters_standby(
+    mut up_thruster_standby_reader: MessageReader<ThrustUpStandby>,
+    mut right_thruster_standby_reader: MessageReader<ThrustRightStandby>,
     mut parent_transform: Query<
         (&Children, &mut Transform),
         Or<(With<RightThruster>, With<UpThruster>)>,
@@ -194,7 +196,7 @@ fn update_controlled_thrusters(
         &mut ThrusterState,
     )>,
 ) {
-    for _ in up_thruster_off_reader.read() {
+    for _ in up_thruster_standby_reader.read() {
         for (children, _) in parent_transform.iter_mut() {
             for child in children {
                 if let Ok((_, ThrustDirection::UP, ThrusterType::CONTROLLED, mut thruster_state)) =
@@ -206,7 +208,7 @@ fn update_controlled_thrusters(
         }
     }
 
-    for _ in right_thruster_off_reader.read() {
+    for _ in right_thruster_standby_reader.read() {
         for (children, _) in parent_transform.iter_mut() {
             for child in children {
                 if let Ok((
@@ -221,9 +223,25 @@ fn update_controlled_thrusters(
             }
         }
     }
+}
 
+fn update_controlled_thrusters(
+    time: Res<Time>,
+    mut up_thruster_reader: MessageReader<ThrustUp>,
+    mut right_thruster_reader: MessageReader<ThrustRight>,
+    mut parent_transform: Query<
+        (&Children, &mut Transform, &mut Velocity),
+        Or<(With<RightThruster>, With<UpThruster>)>,
+    >,
+    mut thrusters: Query<(
+        &Thruster,
+        &ThrustDirection,
+        &ThrusterType,
+        &mut ThrusterState,
+    )>,
+) {
     for _ in up_thruster_reader.read() {
-        for (children, mut transform) in parent_transform.iter_mut() {
+        for (children, mut transform, mut velocity) in parent_transform.iter_mut() {
             for child in children {
                 if let Ok((
                     thruster,
@@ -232,7 +250,8 @@ fn update_controlled_thrusters(
                     mut thruster_state,
                 )) = thrusters.get_mut(*child)
                 {
-                    transform.translation += thruster.direction;
+                    velocity.m_per_second += thruster.force * time.delta_secs();
+                    transform.translation += velocity.m_per_second;
                     *thruster_state = ThrusterState::FIRING;
                 }
             }
@@ -240,7 +259,7 @@ fn update_controlled_thrusters(
     }
 
     for _ in right_thruster_reader.read() {
-        for (children, mut transform) in parent_transform.iter_mut() {
+        for (children, mut transform, mut velocity) in parent_transform.iter_mut() {
             for child in children {
                 if let Ok((
                     thruster,
@@ -249,7 +268,8 @@ fn update_controlled_thrusters(
                     mut thruster_state,
                 )) = thrusters.get_mut(*child)
                 {
-                    transform.translation += thruster.direction;
+                    velocity.m_per_second += thruster.force * time.delta_secs();
+                    transform.translation += velocity.m_per_second;
                     *thruster_state = ThrusterState::FIRING;
                 }
             }
@@ -258,8 +278,9 @@ fn update_controlled_thrusters(
 }
 
 fn update_constant_thrusters(
+    time: Res<Time>,
     mut parent_transform: Query<
-        (&Children, &mut Transform),
+        (&Children, &mut Transform, &mut Velocity),
         Or<(With<ConstantUpThruster>, With<ConstantRightThruster>)>,
     >,
     mut thrusters: Query<(
@@ -269,13 +290,13 @@ fn update_constant_thrusters(
         &mut ThrusterState,
     )>,
 ) {
-    for (children, mut transform) in parent_transform.iter_mut() {
+    for (children, mut transform, mut velocity) in parent_transform.iter_mut() {
         for child in children {
             if let Ok((thruster, _, ThrusterType::CONSTANT, mut thruster_state)) =
                 thrusters.get_mut(*child)
             {
-                transform.translation += thruster.direction;
-                // TODO state firing
+                velocity.m_per_second += thruster.force * time.delta_secs();
+                transform.translation += velocity.m_per_second;
                 *thruster_state = ThrusterState::FIRING;
             }
         }

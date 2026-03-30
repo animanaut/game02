@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::thruster::{ThrustRight, ThrustUp, ThrustUpOff};
+use crate::thruster::{ThrustRight, ThrustUp, ThrustUpStandby};
 
 use super::GameState::Game;
 
@@ -15,7 +15,7 @@ impl Plugin for HoverControllerPlugin {
         app
             // Messages
             // Systems
-            .add_systems(Update, (update_controller_events,).run_if(in_state(Game)));
+            .add_systems(Update, (update_controller_events).run_if(in_state(Game)));
     }
 }
 
@@ -24,7 +24,7 @@ impl Plugin for HoverControllerPlugin {
 fn update_controller_events(
     keyboard_inputs: Res<ButtonInput<KeyCode>>,
     mut thrust_up_events: MessageWriter<ThrustUp>,
-    mut thrust_up_off_events: MessageWriter<ThrustUpOff>,
+    mut thrust_up_off_events: MessageWriter<ThrustUpStandby>,
     mut thrust_right_events: MessageWriter<ThrustRight>,
 ) {
     debug!("updating {}", NAME);
@@ -35,7 +35,7 @@ fn update_controller_events(
     }
 
     if keyboard_inputs.just_released(KeyCode::KeyW) {
-        thrust_up_off_events.write(ThrustUpOff);
+        thrust_up_off_events.write(ThrustUpStandby);
         debug!("player pressed up");
     }
 

@@ -1,6 +1,9 @@
 use bevy::{input::keyboard::KeyboardInput, prelude::*};
 
-use crate::thruster::{ConstantRightThruster, UpThruster};
+use crate::{
+    gravity::Mass,
+    thruster::{ConstantRightThruster, UpThruster},
+};
 
 use super::GameState;
 
@@ -29,7 +32,8 @@ fn game_setup(mut commands: Commands) {
         .spawn(Player)
         .insert(Name::new("Player"))
         .insert(UpThruster)
-        .insert(ConstantRightThruster);
+        .insert(ConstantRightThruster)
+        .insert(Mass { amount_kg: 1000.0 });
 }
 
 fn handle_player(player_query: Query<&Player>) {

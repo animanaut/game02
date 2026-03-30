@@ -182,6 +182,7 @@ fn update_controlled_thrusters(
     mut up_thruster_reader: MessageReader<ThrustUp>,
     mut up_thruster_off_reader: MessageReader<ThrustUpOff>,
     mut right_thruster_reader: MessageReader<ThrustRight>,
+    mut right_thruster_off_reader: MessageReader<ThrustRightOff>,
     mut parent_transform: Query<
         (&Children, &mut Transform),
         Or<(With<RightThruster>, With<UpThruster>)>,
@@ -198,6 +199,22 @@ fn update_controlled_thrusters(
             for child in children {
                 if let Ok((_, ThrustDirection::UP, ThrusterType::CONTROLLED, mut thruster_state)) =
                     thrusters.get_mut(*child)
+                {
+                    *thruster_state = ThrusterState::ON;
+                }
+            }
+        }
+    }
+
+    for _ in right_thruster_off_reader.read() {
+        for (children, _) in parent_transform.iter_mut() {
+            for child in children {
+                if let Ok((
+                    _,
+                    ThrustDirection::RIGHT,
+                    ThrusterType::CONTROLLED,
+                    mut thruster_state,
+                )) = thrusters.get_mut(*child)
                 {
                     *thruster_state = ThrusterState::ON;
                 }
@@ -225,10 +242,15 @@ fn update_controlled_thrusters(
     for _ in right_thruster_reader.read() {
         for (children, mut transform) in parent_transform.iter_mut() {
             for child in children {
-                if let Ok((thruster, ThrustDirection::RIGHT, ThrusterType::CONTROLLED, _)) =
-                    thrusters.get(*child)
+                if let Ok((
+                    thruster,
+                    ThrustDirection::RIGHT,
+                    ThrusterType::CONTROLLED,
+                    mut thruster_state,
+                )) = thrusters.get_mut(*child)
                 {
                     transform.translation += thruster.direction;
+                    *thruster_state = ThrusterState::FIRING;
                 }
             }
         }
@@ -240,12 +262,21 @@ fn update_constant_thrusters(
         (&Children, &mut Transform),
         Or<(With<ConstantUpThruster>, With<ConstantRightThruster>)>,
     >,
-    thrusters: Query<(&Thruster, &ThrusterType)>,
+    mut thrusters: Query<(
+        &Thruster,
+        &ThrustDirection,
+        &ThrusterType,
+        &mut ThrusterState,
+    )>,
 ) {
     for (children, mut transform) in parent_transform.iter_mut() {
         for child in children {
-            if let Ok((thruster, ThrusterType::CONSTANT)) = thrusters.get(*child) {
+            if let Ok((thruster, _, ThrusterType::CONSTANT, mut thruster_state)) =
+                thrusters.get_mut(*child)
+            {
                 transform.translation += thruster.direction;
+                // TODO state firing
+                *thruster_state = ThrusterState::FIRING;
             }
         }
     }
